@@ -218,6 +218,13 @@ export default function ChatPage() {
       localStorage.setItem("userId", Math.random().toString(36).substring(2, 10));
     }
     loadMessages();
+
+    // Polling for real-time updates (works on serverless)
+    const pollInterval = setInterval(() => {
+      loadMessages(true); // silent mode
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
   }, [code]);
 
   useEffect(() => {
@@ -345,25 +352,34 @@ export default function ChatPage() {
     }
   }, [selectedFiles, code]);
 
-  const loadMessages = async () => {
+  const loadMessages = async (silent: boolean = false) => {
     try {
       const response = await fetch(`/api/rooms/${code}/messages`);
       if (response.ok) {
         const data = await response.json();
-        console.log("API response:", data);
-        console.log("Room expiresAt:", data.room?.expiresAt);
-        setMessages(data.messages || []);
+        
+        // Only update if there are actual changes (avoid flickering)
+        setMessages(prev => {
+          const newMessages = data.messages || [];
+          const prevIds = new Set(prev.map(m => m.id));
+          const hasNewMessages = newMessages.some((m: Message) => !prevIds.has(m.id));
+          
+          if (hasNewMessages || prev.length !== newMessages.length) {
+            return newMessages;
+          }
+          return prev;
+        });
+        
         setUserCount(data.userCount || 1);
+        
         if (data.room?.expiresAt) {
-          const expiresDate = new Date(data.room.expiresAt);
-          console.log("Setting expiresAt:", expiresDate);
-          setRoomExpiresAt(expiresDate);
+          setRoomExpiresAt(new Date(data.room.expiresAt));
         }
       }
     } catch (error) {
-      console.error("Failed to load messages:", error);
+      if (!silent) console.error("Failed to load messages:", error);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 

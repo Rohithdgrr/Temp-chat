@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { rooms, messages, users } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { broadcaster } from "@/lib/broadcaster";
 
 export const dynamic = "force-dynamic";
 
@@ -107,8 +106,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }).returning();
 
     const savedMessage = message[0];
-
-    broadcaster.broadcast(roomCode, "message", savedMessage);
 
     return NextResponse.json(savedMessage);
   } catch (error) {

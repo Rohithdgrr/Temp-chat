@@ -122,15 +122,12 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Simple syntax highlighting
   const highlightCode = (code: string, lang: string): string => {
-    // Escape HTML first
     let highlighted = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
 
-    // Language-specific comment patterns
     const commentPatterns: Record<string, RegExp[]> = {
       default: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g, /#.*$/gm],
       python: [/#.*$/gm, /"""[\s\S]*?"""/g, /'''[\s\S]*?'''/g],
@@ -159,48 +156,50 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
 
     const patterns = commentPatterns[lang.toLowerCase()] || commentPatterns.default;
     
-    // Apply comment highlighting
     patterns.forEach(pattern => {
       highlighted = highlighted.replace(pattern, (match) => {
-        return `<span class="text-gray-500 italic">${match}</span>`;
+        return `<span class="text-slate-400/80 italic font-medium drop-shadow-sm">${match}</span>`;
       });
     });
 
-    // String highlighting
     highlighted = highlighted
       .replace(/(["'`])(?:(?!\1|\\).|\\.)*\1/g, (match) => {
-        return `<span class="text-emerald-400">${match}</span>`;
+        return `<span class="text-emerald-300 drop-shadow-[0_0_8px_rgba(110,231,183,0.3)]">${match}</span>`;
       });
 
-    // Number highlighting
     highlighted = highlighted
-      .replace(/\b(\d+\.?\d*)\b/g, '<span class="text-amber-400">$1</span>');
+      .replace(/\b(\d+\.?\d*)\b/g, '<span class="text-orange-300 drop-shadow-[0_0_8px_rgba(253,186,116,0.3)]">$1</span>');
 
-    // Keyword highlighting for common languages
     const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'throw', 'new', 'this', 'true', 'false', 'null', 'undefined', 'def', 'print', 'elif', 'in', 'not', 'and', 'or', 'public', 'private', 'static', 'void', 'int', 'string', 'bool', 'package', 'interface', 'type', 'struct', 'func', 'go', 'select', 'case', 'default', 'switch', 'break', 'continue', 'yield', 'lambda', 'self', 'None', 'True', 'False'];
     
     keywords.forEach(keyword => {
       const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
-      highlighted = highlighted.replace(regex, '<span class="text-purple-400">$1</span>');
+      highlighted = highlighted.replace(regex, '<span class="text-indigo-300 font-semibold drop-shadow-[0_0_8px_rgba(165,180,252,0.3)]">$1</span>');
     });
 
     return highlighted;
   };
 
   return (
-    <div className="rounded-lg overflow-hidden text-xs my-2 bg-gray-900 border border-white/10">
-      <div className="flex items-center justify-between px-3 py-2 bg-black/30">
+    <div className="rounded-xl overflow-hidden text-xs my-3 bg-slate-950/90 border border-white/10 shadow-2xl backdrop-blur-md">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/5">
         <div className="flex items-center gap-2">
-          <span className="text-gray-400 font-mono text-[10px] uppercase">{language}</span>
+          <div className="w-2 h-2 rounded-full bg-red-500/50" />
+          <div className="w-2 h-2 rounded-full bg-amber-500/50" />
+          <div className="w-2 h-2 rounded-full bg-emerald-500/50" />
+          <span className="ml-2 text-slate-400 font-mono text-[10px] uppercase tracking-wider">{language}</span>
         </div>
-        <button onClick={copyCode} className="text-gray-400 hover:text-white transition-colors flex items-center gap-1">
-          {copied ? <CheckCheck className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-          <span className="text-[10px]">{copied ? "Copied!" : "Copy"}</span>
+        <button 
+          onClick={copyCode} 
+          className="text-slate-400 hover:text-white transition-all duration-200 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-white/5 active:scale-95"
+        >
+          {copied ? <CheckCheck className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+          <span className="text-[10px] font-medium tracking-tight">{copied ? "Copied!" : "Copy"}</span>
         </button>
       </div>
-      <pre className="p-3 overflow-x-auto max-h-64 overflow-y-auto">
+      <pre className="p-4 overflow-x-auto max-h-[32rem] overflow-y-auto custom-scrollbar-dark selection:bg-indigo-500/30">
         <code 
-          className="text-gray-100 font-mono text-[11px] leading-relaxed whitespace-pre"
+          className="text-slate-200 font-mono text-[12px] leading-relaxed whitespace-pre"
           dangerouslySetInnerHTML={{ __html: highlightCode(code, language) }}
         />
       </pre>
@@ -211,28 +210,28 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
 function ImagePreview({ file, onClick }: { file: FileMetadata; onClick: () => void }) {
   if (!file?.url) return null;
   return (
-    <div className="relative group cursor-pointer mb-2" onClick={onClick}>
+    <div className="relative group cursor-pointer mb-2 overflow-hidden rounded-xl shadow-lg border border-white/10" onClick={onClick}>
       <img 
         src={file.url} 
         alt={file.name || 'Image'} 
-        className="rounded-xl max-w-full max-h-80 object-cover shadow-lg transition-transform group-hover:scale-[1.02]" 
+        className="w-full h-auto max-h-80 object-cover transition-transform duration-500 group-hover:scale-110" 
       />
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-xl transition-colors flex items-center justify-center">
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-full p-3">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+        <div className="bg-white/20 backdrop-blur-md rounded-full p-3 border border-white/30 transform scale-75 group-hover:scale-100 transition-transform duration-300">
           <ImageIcon className="h-6 w-6 text-white" />
         </div>
       </div>
-      <div className="absolute bottom-2 left-2 flex items-center gap-2">
+      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         {file?.size && (
-          <div className="bg-black/60 backdrop-blur rounded-lg px-2 py-1 text-[10px] text-white/80">
+          <div className="bg-black/60 backdrop-blur-md rounded-lg px-2 py-1 text-[10px] text-white/90 border border-white/10 font-medium">
             {formatBytes(file.size)}
           </div>
         )}
         <button 
           onClick={(e) => { e.stopPropagation(); if (file?.url) { const link = document.createElement('a'); link.href = file.url; link.download = file.name || 'image'; link.click(); } }}
-          className="bg-black/60 backdrop-blur hover:bg-black/80 rounded-lg p-1.5 transition-colors"
+          className="bg-indigo-500 hover:bg-indigo-600 rounded-lg p-1.5 transition-colors shadow-lg"
         >
-          <Download className="h-3 w-3 text-white" />
+          <Download className="h-3.5 w-3.5 text-white" />
         </button>
       </div>
     </div>
@@ -256,31 +255,24 @@ function VideoPreview({ file }: { file: FileMetadata }) {
   };
 
   return (
-    <div className="relative mb-2 group">
+    <div className="relative mb-3 group rounded-xl overflow-hidden shadow-xl border border-white/10 bg-black/20">
       <video 
         src={file.url} 
         controls 
-        className="rounded-xl max-w-full max-h-64 shadow-lg" 
+        className="w-full h-auto max-h-80" 
         preload="metadata"
       />
-      <div className="absolute bottom-2 right-2 flex items-center gap-2">
-        {file?.size && (
-          <div className="bg-black/60 backdrop-blur rounded-lg px-2 py-1 text-[10px] text-white/80 flex items-center gap-1">
-            <Video className="h-3 w-3" />
-            {formatBytes(file.size)}
-          </div>
-        )}
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button 
           onClick={handleDownload}
-          className="bg-black/60 backdrop-blur hover:bg-black/80 rounded-lg p-1.5 transition-colors"
+          className="bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 text-white shadow-lg transition-transform active:scale-95"
         >
-          <Download className="h-4 w-4 text-white" />
+          <Download className="h-4 w-4" />
         </button>
       </div>
     </div>
   );
 }
-
 function AudioPreview({ file, isOwn }: { file: FileMetadata; isOwn: boolean }) {
   if (!file?.url) return null;
   const [isPlaying, setIsPlaying] = useState(false);
@@ -402,17 +394,17 @@ function FilePreview({ file, isOwn, onDownload }: { file: FileMetadata; isOwn: b
   if (!file?.url) return null;
 
   const getFileIcon = () => {
-    if (!file?.name) return <FileIcon className="h-10 w-10 text-gray-400" />;
+    if (!file?.name) return <FileIcon className="h-8 w-8 text-slate-400" />;
     const ext = file.name.split('.').pop()?.toLowerCase();
-    if (['pdf'].includes(ext || '')) return <FileText className="h-10 w-10 text-red-400" />;
-    if (['doc', 'docx', 'txt', 'rtf'].includes(ext || '')) return <FileText className="h-10 w-10 text-blue-400" />;
-    if (['xls', 'xlsx', 'csv'].includes(ext || '')) return <FileText className="h-10 w-10 text-green-400" />;
-    if (['ppt', 'pptx'].includes(ext || '')) return <FileText className="h-10 w-10 text-orange-400" />;
-    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext || '')) return <FileIcon className="h-10 w-10 text-yellow-400" />;
-    if (['mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(ext || '')) return <Music className="h-10 w-10 text-purple-400" />;
-    if (['mp4', 'avi', 'mov', 'mkv', 'webm'].includes(ext || '')) return <Video className="h-10 w-10 text-pink-400" />;
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) return <ImageIcon className="h-10 w-10 text-green-400" />;
-    return <FileIcon className="h-10 w-10 text-gray-400" />;
+    if (['pdf'].includes(ext || '')) return <FileText className="h-8 w-8 text-rose-400" />;
+    if (['doc', 'docx', 'txt', 'rtf'].includes(ext || '')) return <FileText className="h-8 w-8 text-blue-400" />;
+    if (['xls', 'xlsx', 'csv'].includes(ext || '')) return <FileText className="h-8 w-8 text-emerald-400" />;
+    if (['ppt', 'pptx'].includes(ext || '')) return <FileText className="h-8 w-8 text-orange-400" />;
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext || '')) return <FileIcon className="h-8 w-8 text-amber-400" />;
+    if (['mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(ext || '')) return <Music className="h-8 w-8 text-violet-400" />;
+    if (['mp4', 'avi', 'mov', 'mkv', 'webm'].includes(ext || '')) return <Video className="h-8 w-8 text-pink-400" />;
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) return <ImageIcon className="h-8 w-8 text-emerald-400" />;
+    return <FileIcon className="h-8 w-8 text-slate-400" />;
   };
 
   const handleDownload = (e: React.MouseEvent) => {
@@ -423,29 +415,31 @@ function FilePreview({ file, isOwn, onDownload }: { file: FileMetadata; isOwn: b
   return (
     <div 
       className={cn(
-        "mb-2 rounded-xl p-3 backdrop-blur border transition-all",
-        isOwn ? "bg-gradient-to-r from-indigo-500/30 to-purple-500/30 border-indigo-500/30" : "bg-white/10 border-white/10",
-        isHovered && "scale-[1.02] border-indigo-500/50"
+        "mb-2 rounded-xl p-3 backdrop-blur-md border transition-all duration-300",
+        isOwn 
+          ? "bg-white/10 border-white/20 hover:bg-white/20" 
+          : "bg-slate-700/50 border-white/10 hover:bg-slate-700/70",
+        isHovered && "translate-y-[-2px] shadow-lg shadow-black/20"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex items-center gap-3">
-        <div className="h-14 w-14 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/10">
+      <div className="flex items-center gap-4">
+        <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10 shadow-inner">
           {getFileIcon()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-white truncate font-medium">{file?.name || 'Unknown file'}</p>
-          <p className="text-xs text-white/50">{file?.size ? formatBytes(file.size) : '0 B'}</p>
+          <p className="text-sm text-white truncate font-semibold tracking-tight">{file?.name || 'Unknown file'}</p>
+          <p className="text-[10px] text-white/50 font-medium uppercase tracking-wider">{file?.size ? formatBytes(file.size) : '0 B'}</p>
         </div>
         <button 
           onClick={handleDownload}
           className={cn(
-            "p-3 rounded-xl transition-all flex-shrink-0",
-            isOwn ? "bg-indigo-500 hover:bg-indigo-600" : "bg-white/20 hover:bg-white/30"
+            "p-2.5 rounded-xl transition-all duration-200 active:scale-90 shadow-sm",
+            isOwn ? "bg-white/20 hover:bg-white/30" : "bg-indigo-500/80 hover:bg-indigo-500 text-white"
           )}
         >
-          <Download className="h-5 w-5 text-white" />
+          <Download className="h-4 w-4" />
         </button>
       </div>
     </div>
@@ -546,10 +540,10 @@ export function MessageBubble({ message, isFirst, isLast, onDownload, onOpenImag
         )}
         
         <div className={cn(
-          "rounded-2xl px-4 py-3 relative group/message transition-all duration-200",
+          "rounded-2xl px-4 py-3 relative group/message transition-all duration-300 shadow-lg",
           isOwn 
-            ? "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 rounded-br-md" 
-            : "bg-white/10 backdrop-blur text-white border border-white/10 rounded-bl-md shadow-lg shadow-black/10"
+            ? "bg-indigo-600/90 text-white rounded-br-sm border border-white/10 backdrop-blur-sm" 
+            : "bg-slate-800/90 backdrop-blur-md text-slate-100 border border-white/5 rounded-bl-sm shadow-black/20"
         )}>
           {isBlurredHere && (
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-2xl flex items-center justify-center cursor-pointer hover:bg-black/70 transition-colors" onClick={() => onRevealBlur(message.id)}>
