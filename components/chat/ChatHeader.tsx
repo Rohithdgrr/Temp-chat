@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Users, Clock, Copy, CheckCheck, Settings, MoreVertical, Pin, Hash, LogOut, Timer, Ghost } from "lucide-react";
+import { MessageSquare, Users, Clock, Copy, CheckCheck, Settings, MoreVertical, Pin, Hash, LogOut, Timer, Ghost, X, Crown, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatTime, cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ interface ChatHeaderProps {
   onCopyCode: () => void;
   onLeave: () => void;
   onToggleSettings: () => void;
+  onToggleParticipants: () => void;
   onToggleMenu: () => void;
   menuOpen: boolean;
   theme?: 'dark' | 'light' | 'gradient';
@@ -33,6 +34,7 @@ export function ChatHeader({
   onCopyCode,
   onLeave,
   onToggleSettings,
+  onToggleParticipants,
   onToggleMenu,
   menuOpen,
   theme = 'light',
@@ -40,112 +42,97 @@ export function ChatHeader({
   const isLight = theme === 'light';
   
   const headerBg = isLight 
-    ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+    ? "bg-white/80"
     : theme === 'gradient'
     ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"
     : "bg-slate-800";
   
-  const textColor = "text-white";
-  const mutedTextColor = "text-white/80";
-
   return (
-    <header className={`${headerBg} px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-lg`}>
-      <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-lg flex items-center justify-center shadow-lg border border-white/20">
-          <MessageSquare className="h-5 w-5 text-white" />
-        </div>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-lg text-white tracking-wide">TempChat</span>
-            {currentMood && (
-              <span className="text-lg animate-bounce" title="Your mood">{currentMood}</span>
-            )}
+    <header className={cn(
+      "sticky top-0 z-40 w-full backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300",
+      headerBg
+    )}>
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+        {/* Left Section: Logo & Status */}
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+          <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg shadow-indigo-200/50">
+            <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
           </div>
-          <button onClick={onCopyCode} className="flex items-center gap-1.5 text-xs text-white/80 hover:text-white transition-colors w-fit group">
-            <Hash className="h-3 w-3" />
-            <span className="font-mono font-bold tracking-wider">{code.slice(0, 3)}-{code.slice(3)}</span>
-            {copied ? (
-              <CheckCheck className="h-3.5 w-3.5 text-green-300" />
-            ) : (
-              <Copy className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            )}
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h1 className="text-sm sm:text-lg font-bold text-slate-900 truncate leading-none">
+                {code}
+              </h1>
+              <button 
+                onClick={onCopyCode}
+                className="p-1 hover:bg-slate-100 rounded-md transition-colors flex-shrink-0"
+              >
+                {copied ? (
+                  <CheckCheck className="h-3 w-3 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3 w-3 text-slate-400" />
+                )}
+              </button>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-medium">
+              <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-emerald-600 truncate">Encrypted</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Center Section: Participants */}
+        <button 
+          onClick={onToggleParticipants}
+          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-all active:scale-95 group flex-shrink-0"
+        >
+          <div className="relative">
+            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-600 group-hover:text-indigo-600 transition-colors" />
+            <span className="absolute -top-1 -right-1 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+            </span>
+          </div>
+          <span className="text-[11px] sm:text-sm font-bold text-slate-700">{userCount}</span>
+          <span className="hidden xs:inline text-[10px] sm:text-xs text-slate-500 font-medium">Online</span>
+        </button>
+
+        {/* Right Section: Actions */}
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50/50 border border-indigo-100">
+            <Clock className="h-4 w-4 text-indigo-500" />
+            <span className="text-sm font-bold text-indigo-600 font-mono tracking-tight">
+              {formatTime(timeLeft)}
+            </span>
+          </div>
+          
+          <button 
+            onClick={onToggleSettings}
+            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all active:scale-95 border border-transparent hover:border-slate-200"
+            title="Room Settings"
+          >
+            <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+          
+          <button 
+            onClick={onLeave}
+            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95 border border-transparent hover:border-rose-100"
+            title="Leave Room"
+          >
+            <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
-
-      <div className="flex items-center gap-2">
-        <div className={cn(
-          "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all backdrop-blur-lg",
-          timeLeft < 300 ? "bg-red-500/80 text-white animate-pulse shadow-lg shadow-red-500/50" :
-          timeLeft < 3600 ? "bg-orange-500/80 text-white" : "bg-white/20 text-white backdrop-blur"
-        )}>
-          <Clock className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">{formatTime(timeLeft || 86400)}</span>
-          <span className="sm:hidden">{timeLeft < 3600 ? formatTime(timeLeft || 86400) : `${Math.floor(timeLeft / 3600)}h`}</span>
-        </div>
-
-        <div className="flex items-center gap-1.5 text-xs text-white bg-white/10 backdrop-blur px-3 py-1.5 rounded-full border border-white/20">
-          <div className="relative">
-            <Users className="h-3.5 w-3.5 text-indigo-200" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          </div>
-          <span className="font-medium">{userCount}</span>
-          <span className="hidden sm:inline text-white/60">online</span>
-        </div>
-
-        {pinnedMessages.size > 0 && (
-          <Button variant="ghost" size="icon" className="relative bg-amber-500/80 hover:bg-amber-500 text-white backdrop-blur">
-            <Pin className="h-4 w-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-amber-600 text-[10px] rounded-full flex items-center justify-center font-bold shadow-lg">
-              {pinnedMessages.size}
-            </span>
-          </Button>
-        )}
-
-        <Button variant="ghost" size="icon" onClick={onToggleSettings} className="hover:bg-white/20 text-white backdrop-blur">
-          <Settings className="h-4 w-4" />
-        </Button>
-
-        <div className="relative lg:hidden">
-          <Button variant="ghost" size="icon" onClick={onToggleMenu} className="hover:bg-white/20 text-white backdrop-blur">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-          {menuOpen && (
-            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-200 p-3 z-50 animate-in slide-in-from-top-2">
-              <div className="px-3 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl mb-2">
-                <p className="text-xs text-gray-500 font-medium">Room Code</p>
-                <p className="font-mono font-bold text-lg text-indigo-600 tracking-wider">{code}</p>
-              </div>
-              <div className="py-3 space-y-2">
-                <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg">
-                  <Clock className="h-4 w-4 text-orange-500" /> 
-                  <span>Expires in {formatTime(timeLeft || 86400)}</span>
-                </div>
-                <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg">
-                  <Users className="h-4 w-4 text-indigo-500" /> 
-                  <span>{userCount} participant{userCount !== 1 ? "s" : ""}</span>
-                </div>
-                {selectedTimer > 0 && (
-                  <div className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 bg-red-50 rounded-lg">
-                    <Timer className="h-4 w-4" /> 
-                    <span>{selectedTimer}s self-destruct</span>
-                  </div>
-                )}
-                {isAnonymous && (
-                  <div className="flex items-center gap-3 px-3 py-2 text-sm text-purple-600 bg-purple-50 rounded-lg">
-                    <Ghost className="h-4 w-4" /> 
-                    <span>Anonymous mode</span>
-                  </div>
-                )}
-              </div>
-              <div className="border-t border-gray-100 pt-3 mt-2">
-                <Button variant="ghost" className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700" onClick={onLeave}>
-                  <LogOut className="h-4 w-4 mr-2" /> Leave Room
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+      
+      {/* Mobile Timer Bar */}
+      <div className="sm:hidden w-full bg-indigo-50/30 border-t border-indigo-100/50 py-1 px-4 flex items-center justify-center gap-2">
+        <Clock className="h-3 w-3 text-indigo-500" />
+        <span className="text-[10px] font-bold text-indigo-600 font-mono">
+          Expires in {formatTime(timeLeft)}
+        </span>
       </div>
     </header>
   );

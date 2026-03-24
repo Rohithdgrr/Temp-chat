@@ -39,6 +39,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({
       messages: roomMessages.reverse(),
       userCount: roomUsers.length,
+      participants: roomUsers.map(u => ({
+        id: u.id,
+        nickname: u.nickname,
+        joinedAt: u.joinedAt,
+      })),
       room: {
         expiresAt: room.expiresAt,
       },
