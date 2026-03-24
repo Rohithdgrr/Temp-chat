@@ -20,6 +20,7 @@ async function runMigration() {
       'ALTER TABLE messages ADD COLUMN IF NOT EXISTS mood varchar(20)',
       'ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_blurred integer DEFAULT 0',
       'ALTER TABLE messages ADD COLUMN IF NOT EXISTS poll_options jsonb',
+      'ALTER TABLE messages ADD COLUMN IF NOT EXISTS expires_at timestamp',
       'ALTER TABLE rooms ADD COLUMN IF NOT EXISTS max_users integer DEFAULT 31',
       'CREATE INDEX IF NOT EXISTS messages_room_id_idx ON messages (room_id)',
       'CREATE INDEX IF NOT EXISTS messages_created_at_idx ON messages (created_at)',

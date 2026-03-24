@@ -20,7 +20,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!room) {
-      return NextResponse.json([]);
+      return NextResponse.json({
+        messages: [],
+        userCount: 0,
+        room: null,
+      });
     }
 
     const roomMessages = await db.query.messages.findMany({
@@ -29,10 +33,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       limit: 100,
     });
 
-    return NextResponse.json(roomMessages.reverse());
+    const roomUsers = await db.query.users.findMany({
+      where: eq(users.roomId, room.id),
+    });
+
+    return NextResponse.json({
+      messages: roomMessages.reverse(),
+      userCount: roomUsers.length,
+      room: {
+        expiresAt: room.expiresAt,
+      },
+    });
   } catch (error) {
     console.error("Get messages error:", error);
-    return NextResponse.json([]);
+    return NextResponse.json({
+      messages: [],
+      userCount: 0,
+      room: null,
+    });
   }
 }
 

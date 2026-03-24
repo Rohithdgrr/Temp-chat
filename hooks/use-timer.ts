@@ -1,23 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 export function useTimer(expiresAt: Date | null | undefined) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const expiresAtRef = useRef<Date | null | undefined>(expiresAt);
 
   useEffect(() => {
-    expiresAtRef.current = expiresAt;
-  }, [expiresAt]);
-
-  useEffect(() => {
-    if (!expiresAtRef.current) {
-      setTimeLeft(86400);
-      return;
-    }
-
     const calculateTimeLeft = () => {
-      const diff = expiresAtRef.current!.getTime() - Date.now();
+      if (!expiresAt) {
+        return 86400;
+      }
+      const diff = new Date(expiresAt).getTime() - Date.now();
       return Math.max(0, Math.floor(diff / 1000));
     };
 
@@ -33,11 +26,11 @@ export function useTimer(expiresAt: Date | null | undefined) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [expiresAt]);
 
   return {
     timeLeft,
-    isExpired: timeLeft <= 0 && expiresAtRef.current !== null,
+    isExpired: timeLeft <= 0 && expiresAt !== null,
     isExpiringSoon: timeLeft > 0 && timeLeft < 300,
   };
 }

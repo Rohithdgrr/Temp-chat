@@ -34,7 +34,7 @@ Press Win + R, type "cmd", press Enter
 ### Step 2: Navigate to Project
 
 ```bash
-cd "C:\Users\Student\Music\New folder (2)"
+cd "C:\Users\Your\Path\tempchat"
 ```
 
 ### Step 3: Install Node.js (if not installed)
@@ -131,13 +131,12 @@ If you want to preview the UI without setting up databases:
 
 ## Features Working After Setup
 
+### Chat Features
 - Landing page with hero
 - Create room with QR code
 - Join room with OTP input
 - Real-time chat via SSE
-- File uploads to R2
-- File downloads
-- Message bubbles
+- Message bubbles with avatars
 - Typing indicators
 - Timer countdown
 - Export chat (JSON/TXT)
@@ -145,3 +144,52 @@ If you want to preview the UI without setting up databases:
 - Mobile responsive
 - Toast notifications
 - Connection status
+
+### File Sharing
+- Upload images, videos, audio, and documents
+- Image previews with lightbox
+- Video player with controls
+- Audio player with progress bar
+- Document previews with icons
+- Download buttons for all files
+- Upload progress animations
+
+### Markdown Features
+- Full markdown rendering in chat
+- Headers (H1-H4)
+- Bold, italic, strikethrough text
+- Code blocks with syntax highlighting
+- Inline code
+- Ordered and unordered lists
+- Blockquotes
+- Links (auto-detected)
+- Tables (GitHub Flavored Markdown)
+- Horizontal rules
+
+### Input Box Features
+- **Preview Mode** - Click eye icon to see formatted output
+- **Auto-detect** - Automatically detects markdown syntax
+- **Code Detection** - Shows "Code detected" badge
+- **Code Execution** - Run JS/TS code directly in preview
+- **Copy Button** - One-click copy for messages
+- **Emoji Picker** - Full emoji selection grid
+
+### Sending Animations
+- Real-time sending progress bar
+- Animated dots during upload
+- Success checkmark animation
+- Failed state with retry option
+- Separate file upload cards with progress
+
+## Available Scripts
+
+```bash
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run start      # Start production server
+npm run lint       # Run ESLint
+npm run typecheck  # Run TypeScript type check
+npm run db:push    # Push database schema to Neon
+npm run db:studio  # Open Drizzle Studio
+npm run db:generate # Generate database migrations
+```

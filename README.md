@@ -62,16 +62,45 @@ npm run db:push
 
 ## Features
 
+### Core Chat
 - Landing page with hero
 - Create room with QR code
 - Join room with OTP input
 - Real-time chat (SSE)
-- File uploads
-- Message bubbles
+- Message bubbles with avatars
 - Typing indicators
 - Timer countdown
 - Export chat
 - Mobile responsive
+
+### File Sharing
+- Upload images, videos, audio, and documents
+- File preview with thumbnails
+- Download buttons for all file types
+- Drag & drop support
+- Progress indicators
+
+### Markdown Support
+- Full markdown rendering in messages
+- Headers, bold, italic, strikethrough
+- Code blocks with syntax highlighting
+- Inline code
+- Lists (ordered & unordered)
+- Blockquotes
+- Links
+- Tables (GFM)
+
+### Input Features
+- **Preview Mode** - See formatted output before sending
+- **Auto-detect** - Automatically detects markdown and code syntax
+- **Code Execution** - Run JavaScript/TypeScript code directly in preview
+- **Copy Button** - One-click copy for messages and code
+
+### Animations
+- Real-time sending animations
+- Progress bars for uploads
+- Success/failure states
+- Retry failed messages
 
 ## Tech Stack
 
@@ -83,15 +112,19 @@ npm run db:push
 - Neon PostgreSQL
 - Cloudflare R2
 - Server-Sent Events
+- react-markdown
+- remark-gfm
 
 ## Scripts
 
 ```bash
-npm run dev      # Start dev server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Lint code
-npm run typecheck # Type check
+npm run dev        # Start dev server
+npm run build      # Build for production
+npm run start      # Start production server
+npm run lint       # Lint code
+npm run typecheck  # Type check
+npm run db:push    # Push database schema
+npm run db:studio  # Open Drizzle Studio
 ```
 
 ## Project Structure
@@ -102,13 +135,66 @@ tempchat/
 │   ├── page.tsx              # Landing
 │   ├── create/page.tsx       # Create room
 │   ├── join/page.tsx         # Join room
-│   ├── chat/[code]/page.tsx # Chat room
+│   ├── chat/[code]/page.tsx  # Chat room
 │   └── api/                  # API routes
 ├── components/
-│   └── ui/                  # UI components
+│   ├── ui/                  # UI components (shadcn)
+│   └── chat/                 # Chat components
+│       ├── ChatHeader.tsx
+│       ├── ChatInput.tsx
+│       ├── MessageBubble.tsx
+│       ├── EmptyState.tsx
+│       └── LoadingState.tsx
 ├── lib/                      # Utilities
 ├── hooks/                    # React hooks
-└── types/                    # TypeScript types
+├── types/                    # TypeScript types
+└── drizzle/                  # Database schema
+```
+
+## Markdown Examples
+
+### Headers
+```markdown
+# H1 Heading
+## H2 Heading
+### H3 Heading
+```
+
+### Text Formatting
+```markdown
+**Bold text**
+*Italic text*
+~~Strikethrough~~
+`inline code`
+```
+
+### Code Blocks
+```javascript
+// JavaScript with syntax highlighting
+function hello() {
+  console.log("Hello, World!");
+}
+```
+
+### Lists
+```markdown
+- Unordered item
+- Another item
+
+1. Ordered item
+2. Second item
+```
+
+### Blockquotes
+```markdown
+> This is a quote
+```
+
+### Tables
+```markdown
+| Header | Header |
+|--------|--------|
+| Cell   | Cell   |
 ```
 
 ## License

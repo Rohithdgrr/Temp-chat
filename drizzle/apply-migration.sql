@@ -10,6 +10,7 @@ ALTER TABLE messages ADD COLUMN IF NOT EXISTS unlock_at timestamp;
 ALTER TABLE messages ADD COLUMN IF NOT EXISTS mood varchar(20);
 ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_blurred integer DEFAULT 0;
 ALTER TABLE messages ADD COLUMN IF NOT EXISTS poll_options jsonb;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS expires_at timestamp;
 
 -- Add missing column to rooms table
 ALTER TABLE rooms ADD COLUMN IF NOT EXISTS max_users integer DEFAULT 31;
