@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://via.placeholder.com/1000x250/09090b/fafafa?text=TempChat+-+Secure,+Ephemeral+Messaging" alt="TempChat Banner" />
   
   <br />
   
