@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Smile, X, Paperclip, Image, Video, Music, FileIcon, Copy, CheckCheck, Play, Loader2, Code, Eye, MessageSquare } from "lucide-react";
+import { Send, Smile, X, Paperclip, Image, Video, Music, FileIcon, Copy, CheckCheck, Code, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EMOJIS } from "./MessageBubble";
 import ReactMarkdown from "react-markdown";
@@ -10,9 +10,6 @@ import remarkGfm from "remark-gfm";
 
 function PreviewCodeBlock({ code, language }: { code: string; language: string }) {
   const [copied, setCopied] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [output, setOutput] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
@@ -20,54 +17,11 @@ function PreviewCodeBlock({ code, language }: { code: string; language: string }
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleRun = () => {
-    setRunning(true);
-    setOutput(null);
-    setError(null);
-    
-    try {
-      const logs: string[] = [];
-      const customConsole = {
-        log: (...args: unknown[]) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
-        error: (...args: unknown[]) => logs.push('Error: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
-        warn: (...args: unknown[]) => logs.push('Warn: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
-        info: (...args: unknown[]) => logs.push('Info: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
-      };
-
-      const fn = new Function('console', code);
-      fn(customConsole);
-      
-      setTimeout(() => {
-        if (logs.length > 0) {
-          setOutput(logs.join('\n'));
-        } else {
-          setOutput('(No output)');
-        }
-        setRunning(false);
-      }, 100);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      setRunning(false);
-    }
-  };
-
-  const canRun = ['js', 'javascript', 'ts', 'typescript', 'json', 'node'].includes(language.toLowerCase());
-
   return (
     <div className="rounded-lg overflow-hidden my-2 bg-gray-900 border border-gray-700">
       <div className="flex items-center justify-between px-3 py-2 bg-gray-800 border-b border-gray-700">
         <div className="flex items-center gap-2">
           <span className="text-gray-400 font-mono text-[10px] uppercase font-semibold">{language}</span>
-          {canRun && (
-            <button
-              onClick={handleRun}
-              disabled={running}
-              className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-green-600 hover:bg-green-500 text-white transition-colors disabled:opacity-50"
-            >
-              {running ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-              Run
-            </button>
-          )}
         </div>
         <button onClick={handleCopy} className="text-gray-400 hover:text-white transition-colors flex items-center gap-1">
           {copied ? <CheckCheck className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
@@ -77,21 +31,6 @@ function PreviewCodeBlock({ code, language }: { code: string; language: string }
       <pre className="p-3 overflow-x-auto max-h-48 overflow-y-auto">
         <code className="text-gray-100 font-mono text-[11px] leading-relaxed">{code}</code>
       </pre>
-      {(output !== null || error !== null) && (
-        <div className="px-3 pb-3">
-          {error ? (
-            <div className="bg-red-900/30 border border-red-700 rounded p-2 text-red-300 text-xs font-mono">
-              <div className="font-semibold mb-1">Error:</div>
-              <pre className="whitespace-pre-wrap">{error}</pre>
-            </div>
-          ) : (
-            <div className="bg-gray-800 border border-gray-700 rounded p-2 text-green-400 text-xs font-mono">
-              <div className="font-semibold mb-1 text-gray-400">Output:</div>
-              <pre className="whitespace-pre-wrap">{output}</pre>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

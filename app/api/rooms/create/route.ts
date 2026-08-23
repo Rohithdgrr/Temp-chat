@@ -2,29 +2,42 @@ import { NextResponse } from "next/server";
 import { generateCode } from "@/lib/code-generator";
 import { db } from "@/lib/db";
 import { rooms, users } from "@/lib/db/schema";
+import { createRoomSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { nickname = "Guest", expiryMinutes = 1440, maxUsers = 31 } = body;
+    const parsed = createRoomSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+    }
+    const { nickname, expiryMinutes, maxUsers } = parsed.data;
 
     if (!db) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    const code = generateCode();
-    const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
+    let code: string, room;
+    for (let i=0;i<5;i++) {
+      code = generateCode();
+      try {
+        const [r] = await db.insert(rooms).values({
+          code,
+          status: "waiting",
+          expiresAt: new Date(Date.now() + expiryMinutes * 60 * 1000),
+          maxUsers,
+        }).returning();
+        room = r;
+        break;
+      } catch(e:any) {
+        if (!e.message?.includes('duplicate')) throw e;
+      }
+    }
+    if (!room) return NextResponse.json({ error: "Failed to generate unique code" }, { status: 500 });
 
-    const [room] = await db.insert(rooms).values({
-      code,
-      status: "waiting",
-      expiresAt,
-      maxUsers: Math.min(Math.max(2, maxUsers), 31),
-    }).returning();
-
-    const [user] = await db.insert(users).values({
+    const [newUser] = await db.insert(users).values({
       roomId: room.id,
       nickname,
     }).returning();
@@ -33,7 +46,7 @@ export async function POST(request: Request) {
       code: room.code,
       roomId: room.code,
       expiresAt: room.expiresAt.toISOString(),
-      userId: user.id,
+      userId: newUser.id,
       maxUsers: room.maxUsers,
     });
   } catch (error) {

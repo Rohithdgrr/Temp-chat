@@ -20,11 +20,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!room) {
-      return NextResponse.json({
-        messages: [],
-        userCount: 0,
-        room: null,
-      });
+      return NextResponse.json({ messages: [], userCount: 0, room: null, });
+    }
+    if (new Date(room.expiresAt) < new Date()) {
+      return NextResponse.json({ messages: [], userCount: 0, room: null, expired:true });
     }
 
     const roomMessages = await db.query.messages.findMany({
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const savedMessage = message[0];
 
-    broadcaster.broadcast(roomCode, "message", savedMessage);
+    broadcaster.broadcast(roomCode, "message:new", { message: savedMessage });
 
     return NextResponse.json(savedMessage);
   } catch (error) {

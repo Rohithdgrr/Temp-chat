@@ -1,44 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const demoMessages = [
-  { id: "1", senderName: "Alice", content: "Hey! This is TempChat demo 🎉", type: "text", createdAt: new Date(Date.now() - 60000), metadata: null },
-  { id: "2", senderName: "You", content: "Wow, it works! How cool is this?", type: "text", createdAt: new Date(Date.now() - 30000), metadata: null },
-  { id: "3", senderName: "Alice", content: "Pretty cool! Create a real room to start chatting.", type: "text", createdAt: new Date(), metadata: null },
-];
+import { db } from "@/lib/db";
+import { rooms, messages } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const { format = "json" } = await request.json();
+  const roomCode = code.toUpperCase();
+
+  if (!db) {
+    return NextResponse.json({ error:"Database not configured" }, { status:500 });
+  }
+  const room = await db.query.rooms.findFirst({ where: eq(rooms.code, roomCode) });
+  if (!room) return NextResponse.json({ error:"Room not found" }, { status:404 });
+
+  const msgs = await db.query.messages.findMany({ where: eq(messages.roomId, room.id), orderBy:[desc(messages.createdAt)] });
 
   if (format === "txt") {
     let content = `TempChat Export\n`;
-    content += `Room: ${code}\n`;
+    content += `Room: ${roomCode}\n`;
     content += `Exported: ${new Date().toISOString()}\n`;
-    content += `Messages: ${demoMessages.length}\n`;
+    content += `Messages: ${msgs.length}\n`;
     content += `${"=".repeat(50)}\n\n`;
-
-    for (const msg of demoMessages) {
+    for (const msg of msgs.reverse()) {
       const time = new Date(msg.createdAt).toLocaleString();
       content += `[${time}] ${msg.senderName}: ${msg.content}\n`;
     }
-
     return new Response(content, {
       headers: {
         "Content-Type": "text/plain",
-        "Content-Disposition": `attachment; filename="tempchat-${code}.txt"`,
+        "Content-Disposition": `attachment; filename="tempchat-${roomCode}.txt"`,
       },
     });
   }
 
   return NextResponse.json({
-    room: {
-      code,
-      status: "demo",
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 86400000),
-    },
+    room:{ code:room.code, status:room.status, createdAt:room.createdAt, expiresAt:room.expiresAt },
     exportedAt: new Date().toISOString(),
-    messageCount: demoMessages.length,
-    messages: demoMessages,
+    messageCount: msgs.length,
+    messages: msgs.reverse(),
   });
 }

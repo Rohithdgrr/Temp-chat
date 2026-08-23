@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { messages } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { messages, users } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { broadcaster } from "@/lib/broadcaster";
 
 export const dynamic = "force-dynamic";
 
@@ -14,17 +15,25 @@ export async function POST(
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    const { id } = await params;
+    const { id, code } = await params;
     const body = await request.json();
     const { emoji, userId } = body;
 
     if (!emoji || !userId) {
       return NextResponse.json({ error: "Emoji and userId required" }, { status: 400 });
     }
-
     const existingMessage = await db.query.messages.findFirst({
       where: eq(messages.id, id),
     });
+
+    if (!existingMessage) {
+      return NextResponse.json({ error: "Message not found" }, { status: 404 });
+    }
+    // ensure user belongs to room
+    const membership = await db.query.users.findFirst({
+      where: and(eq(users.id, userId), eq(users.roomId, existingMessage.roomId)),
+    });
+    if (!membership) return NextResponse.json({ error:"Unauthorized" },{status:403});
 
     if (!existingMessage) {
       return NextResponse.json({ error: "Message not found" }, { status: 404 });
@@ -53,6 +62,8 @@ export async function POST(
       .set({ reactions: currentReactions })
       .where(eq(messages.id, id))
       .returning();
+
+    broadcaster.broadcast(code.toUpperCase(), "message:react", { messageId:id, reactions: updatedMessage[0].reactions });
 
     return NextResponse.json(updatedMessage[0]);
   } catch (error) {

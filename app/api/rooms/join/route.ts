@@ -25,6 +25,11 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedCode = code.toUpperCase().replace(/[^A-Z2-9]/g, "");
+    // expiry check
+    // simple schema check
+    if (normalizedCode.length !== 6) {
+      return NextResponse.json({ success:false, error:"Invalid code" },{status:400});
+    }
 
     const room = await db.query.rooms.findFirst({
       where: eq(rooms.code, normalizedCode),
@@ -35,6 +40,9 @@ export async function POST(request: NextRequest) {
         { success: false, error: "Room not found" },
         { status: 404 }
       );
+    }
+    if (new Date(room.expiresAt) < new Date()) {
+      return NextResponse.json({ success:false, error:"Room expired"},{status:410});
     }
 
     const currentUserCount = await db.query.users.findMany({

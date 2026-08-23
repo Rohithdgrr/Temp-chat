@@ -15,8 +15,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Redirect to the file with download headers
-    // The browser will automatically download the file
+    let urlObj: URL;
+    try {
+      urlObj = new URL(fileUrl);
+    } catch {
+      return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
+    }
+
+    const allowedHosts = [
+      "catbox.moe",
+      "catbox.to",
+      "r2.dev",
+      "r2.cloudflarestorage.com",
+    ];
+    if (!allowedHosts.some(h => urlObj.hostname.endsWith(h))) {
+      return NextResponse.json({ error: "URL not allowed" }, { status: 403 });
+    }
+
     return NextResponse.redirect(fileUrl, 302);
   } catch (error) {
     console.error("Download redirect error:", error);

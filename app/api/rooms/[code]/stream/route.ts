@@ -19,27 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const encoder = new TextEncoder();
   let isConnected = true;
 
-  const connectedPromise = new Promise<void>((resolve) => {
-    broadcaster.addClient(roomCode, userId, (data) => {
-      if (isConnected) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
-      }
-    });
-
-    const controller = {
-      enqueue: (chunk: Uint8Array) => {
-        if (isConnected) {
-          try {
-            request.signal.throwIfAborted();
-          } catch {
-            // Signal aborted
-          }
-        }
-      },
-    };
-
-    resolve();
-  });
+  broadcaster.addClient(roomCode, userId, (data) => {});
 
   const stream = new ReadableStream({
     start(controller) {
@@ -49,33 +29,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         if (isConnected) {
           try {
             controller.enqueue(encoder.encode(`: heartbeat\n\n`));
-          } catch {
-            clearInterval(interval);
-          }
+          } catch {}
         }
       }, 15000);
+
+      const handler = (data: unknown) => {
+        if (!isConnected) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        } catch {}
+      };
+      broadcaster.addClient(roomCode, userId, handler);
 
       request.signal.addEventListener("abort", () => {
         isConnected = false;
         clearInterval(interval);
         broadcaster.removeClient(roomCode, userId);
-        try {
-          controller.close();
-        } catch {
-          // Already closed
-        }
-      });
-
-      connectedPromise.then(() => {
-        broadcaster.addClient(roomCode, userId, (data) => {
-          if (isConnected) {
-            try {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
-            } catch {
-              // Stream closed
-            }
-          }
-        });
+        try { controller.close(); } catch {}
       });
     },
   });
